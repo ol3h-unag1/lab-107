@@ -244,3 +244,8 @@ x64/Debug/MyModule.ixx.ifc.isense.dt.command
 x64/Debug/MyModule.ixx.ifc.isense.dt.d.json
 x64/Debug/ProCpp.Build.CppClean.log
 x64/Debug/ProCpp.vcxproj.FileListAbsolute.txt
+*.ifc
+*.json
+*.obj
+*.dt
+*.command
