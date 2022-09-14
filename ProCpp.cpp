@@ -3,11 +3,11 @@ import <format>;
 
 import <exception>;
 
+
+import Misc;
 import ExceptionsLab;
-
-
 
 int main()
 {
-    TestFunctionTryBlocks();
+    testDefaultParametersInOverridenMethods();
 }
