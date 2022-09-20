@@ -25,21 +25,33 @@ UnderlyingNumericType constexpr insurance{ 8 };
 
 UnderlyingNumericType constexpr divisor{ 3377 };
 
-auto lambda_filter_by_divisor = [](UnderlyingNumericType i) 
+auto lambda_filter = [](UnderlyingNumericType i) 
 { 
-    bool mod{ i % divisor };
+    static UnderlyingNumericType step{ from };
+
+    auto mod{ i % divisor };
+    auto division{ i / divisor };
+
+    auto magical{ (step / division + step / mod) * std::numbers::phi };
+
+
+    bool filter{ magical / std::numbers::sqrt2 < std::numbers::egamma };
+
+    step += mod;
     
-    return mod;
+    return filter;
 };
 
 auto lambda_transform = [](UnderlyingNumericType i)
 {
-    UnderlyingNumericType transformed 
+    UnderlyingNumericType transformed{ static_cast<UnderlyingNumericType>( std::ceil(i * std::numbers::e) ) };
+
+    return transformed;
 };
 
 int main()
 {
-    auto look{ std::views::iota(from) | std::views::filter([](UnderlyingNumericType) {return true; }) | std::views::take(much) };
+    auto look{ std::views::iota(from) | std::views::filter(lambda_filter) | std::views::take(much) };
 
     std::vector< int > numbers;
     numbers.reserve(much * insurance);
