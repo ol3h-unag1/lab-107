@@ -29,18 +29,17 @@ using std::end;
 
 using namespace std::literals::string_literals;
 
-auto isSpace{ [](auto const& e) { return std::isspace(e); } };
-
-// return number of spaces removed
+// returns number of spaces removed
 std::size_t RoundTrim(std::string& s)
 {
-    auto distanceLeft{ std::distance(cbegin(s), std::find_if_not(cbegin(s), cend(s), isSpace)) };
-    auto distanceRight{ std::distance(crbegin(s), std::find_if_not(crbegin(s), crend(s), isSpace)) };
+    auto const beforeTrim{ s.size() };
 
-    s.erase( std::shift_left(begin(s), end(s), distanceLeft), end(s) );
-    s.erase( begin(s), std::shift_right(begin(s), end(s), distanceRight) );
+    auto isSpace{ [](auto const& e) { return std::isspace(e); } };
 
-    return distanceLeft + distanceRight;
+    s.erase(cbegin(s), std::find_if_not(cbegin(s), cend(s), isSpace));
+    s.erase(std::find_if_not(crbegin(s), crend(s), isSpace).base(), end(s));
+
+    return beforeTrim - s.size();
 };
 
 int main()
