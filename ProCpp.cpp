@@ -1,53 +1,65 @@
 import <iostream>;
-import <format>;
+
+import <vector>;
 
 import <string>;
 
-import <exception>;
 
-import <numeric>;
-import <algorithm>;
+template <typename T>
+constexpr auto type_name() {
+    std::string_view name, prefix, suffix;
+#ifdef __clang__
+    name = __PRETTY_FUNCTION__;
+    prefix = "auto type_name() [T = ";
+    suffix = "]";
+#elif defined(__GNUC__)
+    name = __PRETTY_FUNCTION__;
+    prefix = "constexpr auto type_name() [with T = ";
+    suffix = "]";
+#elif defined(_MSC_VER)
+    name = __FUNCSIG__;
+    prefix = "auto __cdecl type_name<";
+    suffix = ">(void)";
+#endif
+    name.remove_prefix(prefix.size());
+    name.remove_suffix(suffix.size());
+    return name;
+}
 
-import <functional>;
+template< typename T >
+int SAI_BF_helper(T&&) { return 0; }
 
-import <memory>;
+int SAI_BF_helper(int i) { return i; }
 
-import <vector>;
-import <iterator>;
-
-import <span>;
-import <ranges>;
-
-import Misc;
-import ExceptionsLab;
-import RangesLab;
-
-import FireErrorXception;
-
-using std::begin;
-using std::end;
-
-using namespace std::literals::string_literals;
-
-// returns number of spaces removed
-std::size_t RoundTrim(std::string& s)
+// function that take any number parameters of any type and then return sum of all ints using binary left folding expressions
+template< typename ... Types >
+int SumAllInts_BinaryLeftFold(Types ... args)
 {
-    auto const beforeTrim{ s.size() };
+    return (0 + ... + SAI_BF_helper(args));
+}
 
-    auto isSpace{ [](auto const& e) { return std::isspace(e); } };
+template< typename T >
+void PrintTypeName(T&& t)
+{
+    std::cout << type_name< decltype( std::forward< T >(t) )> () << std::endl;
+}
 
-    s.erase(cbegin(s), std::find_if_not(cbegin(s), cend(s), isSpace));
-    s.erase(std::find_if_not(crbegin(s), crend(s), isSpace).base(), end(s));
-
-    return beforeTrim - s.size();
-};
+// if this overload is removed then 'PrintTypeName({1,2,3});' code will not compile
+template< typename T >
+void PrintTypeName( std::initializer_list< T >&& t)
+{
+    std::cout << type_name< decltype(std::forward< std::initializer_list< T > >(t))>() << std::endl;
+}
 
 int main()
 {
-    auto s{"   HELLO MOTHER FUCKERS!    "s};
+    std::vector< int > numbers{ 1, 2, 3 };
+    auto il = { 1, 2, 3, 4, 5 }; 
+    PrintTypeName(numbers); // output: class std::vector<int,class std::allocator<int> >&
+    PrintTypeName(il); // output: class std::initializer_list<int>&
+    PrintTypeName({1,2,3}); // output: class std::initializer_list<int>&&
 
-    std::cout << "Original string: \"" << s << "\"" << std::endl;
-    auto count{ RoundTrim(s) };
-    std::cout << "Trimmed string: \"" << s << "\"" << std::endl;
-    std::cout << "Spaces removed: " << count << std::endl;
+    std::cout << SumAllInts_BinaryLeftFold() << std::endl; // 0 
+    std::cout << SumAllInts_BinaryLeftFold("", 0, 1, 2.2, 'a', "char*", 10, std::string("str"), numbers, il) << std::endl; // 11
+    //std::cout << SumAllInts_BinaryLeftFold( 1, {1, 2}) << std::endl; // MSVC error message: 'initializer list': is not a valid template argument for 'Types'
 }
