@@ -4,6 +4,8 @@ import <iostream>;
 import <algorithm>;
 import <vector>;
 
+import type_name;
+
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 
 class Base
@@ -75,33 +77,13 @@ void ContainerAdapter<T, Container>::Push(T value, Iter where)
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 // https://stackoverflow.com/questions/73889051/stdinitializer-list-rvalue-literal-as-parameter-of-variadic-template/73889222#73889222
-template <typename T>
-constexpr auto type_name() {
-    std::string_view name, prefix, suffix;
-#ifdef __clang__
-    name = __PRETTY_FUNCTION__;
-    prefix = "auto type_name() [T = ";
-    suffix = "]";
-#elif defined(__GNUC__)
-    name = __PRETTY_FUNCTION__;
-    prefix = "constexpr auto type_name() [with T = ";
-    suffix = "]";
-#elif defined(_MSC_VER)
-    name = __FUNCSIG__;
-    prefix = "auto __cdecl type_name<";
-    suffix = ">(void)";
-#endif
-    name.remove_prefix(prefix.size());
-    name.remove_suffix(suffix.size());
-    return name;
-}
-
+// function that take any number parameters of any type and then return sum of all ints using binary left folding expressions
 template< typename T >
 int SAI_BF_helper(T&&) { return 0; }
 
 int SAI_BF_helper(int i) { return i; }
 
-// function that take any number parameters of any type and then return sum of all ints using binary left folding expressions
+
 template< typename ... Types >
 int SumAllInts_BinaryLeftFold(Types ... args)
 {
@@ -133,3 +115,6 @@ void TestStdInitializerListRVLiteral()
     std::cout << SumAllInts_BinaryLeftFold("", 0, 1, 2.2, 'a', "char*", 10, std::string("str"), numbers, il) << std::endl; // 11
     //std::cout << SumAllInts_BinaryLeftFold( 1, {1, 2}) << std::endl; // MSVC error message: 'initializer list': is not a valid template argument for 'Types' 
 }
+
+
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
