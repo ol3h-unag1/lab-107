@@ -1,40 +1,63 @@
 import <iostream>;
 
-import <vector>;
+template <typename Init, typename T > 
+concept addable = requires (T&& t) { Init{} + t; };
 
-import <string>;
+template <typename Init, typename T>
+Init helper(T&&)
+{
+    return Init{};
+}
 
-import <mutex>;
+template <typename Init, typename T> requires addable< Init, T >
+auto helper(T&& value)
+{
+    return value;
+}
 
-import <source_location>;
-
-import <memory>;
-
-import type_name;
-
-import Singleton;
+template< typename Init, typename ... Args >
+auto Add(Args&& ... args)
+{
+    return (Init{} + ... + helper< Init >( args ));
+}
 
 
-using S10 = Singleton< 10 >;
-using S20 = Singleton< 20 >;
+template< typename Init, typename T > requires !addable< Init, T >
+auto Value(T&&)
+{
+    std::cout << "T&&" << std::endl;
+    return Init{};
+}
+
+template< typename Init >
+auto Value(int const& i)
+{
+    std::cout << "int" << std::endl;
+    return i;
+}
+
+template< typename Init >
+auto Value(double const& d)
+{
+    std::cout << "double" << std::endl;
+    return d;
+}
+
+template< typename Init, typename ... Args >
+auto Sum(Args&& ... args)
+{
+    return (Init{} + ... + Value< Init >(args));
+}
+
 
 int main()
 {
-    S20::type s20{ nullptr };
+    //auto result1{ Add<int>(10, 20, 1.1) }; // works
+    //std::cout << result1 << std::endl;
 
-    if (S10::hasInstance())
-    {
-        S10::instance()->doSomething();
-    }
-    else
-    {
-        s20 = S20::instance();
-    }
+    //auto result2{ Add<int>(20, 40, 2.2, "string")}; // doesn't compile
+    //std::cout << result2 << std::endl;
 
-    if (S20::hasInstance())
-    {
-        s20->doSomething();
-    }
-
-
+    auto result3{ Sum< double >(1, 2, 3.3)};
+    std::cout << result3 << std::endl;
 }
