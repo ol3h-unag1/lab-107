@@ -19,7 +19,7 @@ auto AccumValue(T const& value)
 template< typename Init, typename ... Args >
 auto Accum(Args&& ... args)
 {
-    return (Init{} + ... + AccumValue< Init >( std::forward< Args&& >( args ) ));
+    return (Init{} + ... + AccumValue< Init, Args >( std::forward< Args >( args ) ));
 }
 
 // Approach 2. Overloads for target types.
