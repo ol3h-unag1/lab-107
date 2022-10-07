@@ -9,5 +9,5 @@ import Misc;
 
 int main()
 {
-    TestAccumAndSum();
+    TestApplyBinaryOp();
 }

@@ -173,6 +173,7 @@ auto Sum(Args&& ... args)
 
 class TestAccumAndSum_UserDefinedClass {};
 
+
 export void TestAccumAndSum()
 {
     auto result1{ Accum<int>(10, 20, 1.1) }; 
@@ -186,4 +187,29 @@ export void TestAccumAndSum()
 
     auto result3{ Sum< double >(20, 40, 2.2, "string", nullptr, pi, c) + Sum< double >() }; 
     std::cout << result3 << std::endl;
+}
+
+// developing idea of Accum to more abstract level
+template< typename Init, typename BinaryOp, typename ... Args >
+auto ApplyBinaryOp(Init init, BinaryOp bOp, Args&& ... args)
+{
+    return (init + ... + bOp(Init{}, args));
+}
+
+class Add
+{
+public:
+    template< typename Init, typename Value >
+    auto operator()(Init&& init, Value&& value) -> decltype(init + value)
+    {
+        return init + value;
+    }
+};
+
+
+export void TestApplyBinaryOp()
+{
+
+    auto result1{ ApplyBinaryOp< int >(0, Add{}, 10, 20, 1.3) };
+    std::cout << result1 << std::endl;
 }
