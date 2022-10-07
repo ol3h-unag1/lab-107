@@ -10,4 +10,8 @@ import Misc;
 int main()
 {
     TestApplyBinaryOp();
+
+    std::cout << "-----------" << std::endl;
+
+    TestAccumAndSum();
 }

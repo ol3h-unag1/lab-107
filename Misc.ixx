@@ -129,15 +129,15 @@ concept AddableC = requires (T && t)
 };
 
 template <typename Init, typename T >
-Init AccumValue(T const& value)
+Init AccumValue(T&& value)
 {
-    return Init{};
+    return std::move(Init{});
 }
 
 template <typename Init, typename T> requires AddableC< Init, T >
-auto AccumValue(T const& value)
+auto AccumValue(T&& value)
 {
-    return value;
+    return std::forward< T >(value);
 }
 
 template< typename Init, typename ... Args >
@@ -173,7 +173,6 @@ auto Sum(Args&& ... args)
 
 class TestAccumAndSum_UserDefinedClass {};
 
-
 export void TestAccumAndSum()
 {
     auto result1{ Accum<int>(10, 20, 1.1) }; 
@@ -202,7 +201,14 @@ public:
     template< typename Init, typename Value >
     auto operator()(Init&& init, Value&& value) -> decltype(init + value)
     {
-        return init + value;
+        return std::forward< decltype(init + value) >( init + valueOrDefault< Init >(std::forward< Value >( value )));
+    }
+     
+private:
+    template< typename Init, typename Value >
+    auto valueOrDefault(Value&& value)
+    {
+        return std::forward< Value >(value);
     }
 };
 
