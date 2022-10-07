@@ -121,7 +121,12 @@ void TestStdInitializerListRVLiteral()
 // https://stackoverflow.com/questions/73982002/c20-concepts-accumulate-values-of-all-good-types-passed-to-function-variadic
 // Approach 1. Concept.
 template <typename Init, typename T >
-concept AddableC = requires (T && t) { Init{} + t; t + Init{}; static_cast<Init>(t); };
+concept AddableC = requires (T && t) 
+{ 
+    Init{} + t; 
+    t + Init{}; 
+    static_cast<T>(Init{});
+};
 
 template <typename Init, typename T >
 Init AccumValue(T const& value)
