@@ -9,9 +9,9 @@ import Misc;
 
 int main()
 {
-    TestApplyBinaryOp();
+    //TestApplyBinaryOp();
 
-    std::cout << "-----------" << std::endl;
+    //std::cout << "-----------" << std::endl;
 
     TestAccumAndSum();
 }

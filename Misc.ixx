@@ -125,7 +125,6 @@ concept AddableC = requires (T && t)
 { 
     Init{} + t; 
     t + Init{}; 
-    static_cast<T>(Init{});
 };
 
 template <typename Init, typename T >
@@ -134,7 +133,7 @@ Init AccumValue(T&& value)
     return std::move(Init{});
 }
 
-template <typename Init, typename T> requires AddableC< Init, T >
+template <typename Init, typename T> requires AddableC< Init, T > && not std::is_pointer_v< std::decay_t< T > >
 auto AccumValue(T&& value)
 {
     return std::forward< T >(value);
@@ -189,33 +188,14 @@ export void TestAccumAndSum()
 }
 
 // developing idea of Accum to more abstract level
-template< typename Init, typename BinaryOp, typename ... Args >
-auto ApplyBinaryOp(Init init, BinaryOp bOp, Args&& ... args)
+template< typename Init, typename Operator, typename ... Args >
+auto ApplyOperator(Init init, Operator binOp, Args&& ... args)
 {
-    return (init + ... + bOp(Init{}, args));
-}
 
-class Add
-{
-public:
-    template< typename Init, typename Value >
-    auto operator()(Init&& init, Value&& value) -> decltype(init + value)
-    {
-        return std::forward< decltype(init + value) >( init + valueOrDefault< Init >(std::forward< Value >( value )));
-    }
-     
-private:
-    template< typename Init, typename Value >
-    auto valueOrDefault(Value&& value)
-    {
-        return std::forward< Value >(value);
-    }
-};
+}
 
 
 export void TestApplyBinaryOp()
 {
 
-    auto result1{ ApplyBinaryOp< int >(0, Add{}, 10, 20, 1.3) };
-    std::cout << result1 << std::endl;
 }
