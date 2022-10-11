@@ -9,6 +9,6 @@ import TraceLifeTime;
 
 int main()
 {
-
+    TraceLifeTime tlt(313);
 
 }
