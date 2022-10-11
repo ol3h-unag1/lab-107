@@ -198,6 +198,7 @@ export void TestAccumAndSum()
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 // experiment on threads
+// TODO: move to separate module
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 namespace ThreadLab
 {
