@@ -33,6 +33,7 @@ export void testDefaultParametersInOverridenMethods()
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 // returns number of spaces removed
+export
 std::size_t RoundTrim(std::string& s)
 {
     auto const beforeTrim{ s.size() };
@@ -185,17 +186,4 @@ export void TestAccumAndSum()
 
     auto result3{ Sum< double >(20, 40, 2.2, "string", nullptr, pi, c) + Sum< double >() }; 
     std::cout << result3 << std::endl;
-}
-
-// developing idea of Accum to more abstract level
-template< typename Init, typename Operator, typename ... Args >
-auto ApplyOperator(Init init, Operator binOp, Args&& ... args)
-{
-
-}
-
-
-export void TestApplyBinaryOp()
-{
-
 }
