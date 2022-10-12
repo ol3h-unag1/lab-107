@@ -6,22 +6,19 @@ import <syncstream>;
 import <algorithm>;
 import <vector>;
 
-import <condition_variable>;
-import <thread>;
 
-import <chrono>;
 
 import type_name;
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 
-class Base
+class Base_DefaultParametersInOverridenMethods
 {
 public:
     virtual void go(int i = 0) const { std::cout << __FUNCTION__ << " " << i << std::endl; }
 };
 
-class Derived : public Base
+class Derived_DefaultParametersInOverridenMethods : public Base_DefaultParametersInOverridenMethods
 {
 public:
     void go(int i = 1) const override { std::cout << __FUNCTION__ << " " << i << std::endl; }
@@ -29,9 +26,9 @@ public:
 
 export void testDefaultParametersInOverridenMethods()
 {
-    Base b;
-    Derived d;
-    Base& bRefD{ d };
+    Base_DefaultParametersInOverridenMethods b;
+    Derived_DefaultParametersInOverridenMethods d;
+    Base_DefaultParametersInOverridenMethods& bRefD{ d };
 
     b.go();
     d.go();
@@ -196,82 +193,21 @@ export void TestAccumAndSum()
 }
 
 
-/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
-// experiment on threads
-// TODO: move to separate module
-/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
-namespace ThreadLab
+
+class Base
 {
-    auto& sout = std::cout;
+public:
+    void base() { std::cout << "base" << std::endl; }
+};
 
-    std::mutex mut;
+class Middle : protected Base
+{
+public:
+    void middle() { std::cout << "middle" << std::endl; }
+};
 
-    std::condition_variable cv;
-
-    int i = 0;
-
-    void work()
-    {
-        //std::osyncstream sout(std::cout);
-
-        sout << std::this_thread::get_id() << " work: before locking.\n";
-        std::unique_lock ul(mut);
-        sout << std::this_thread::get_id() << " work: locked! waiting... (unlocked & suspended)\n";
-        cv.wait(ul, []
-            {
-                sout << std::this_thread::get_id() << " work: sleeping\n";
-                return i == 1;
-            });
-        sout << std::this_thread::get_id() << " work: locked! finished waiting!\n";
-
-    }
-
-    void notify()
-    {
-        //std::osyncstream sout(std::cout);
-
-        sout << std::this_thread::get_id() << " notify: before sleep.\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        {
-            sout << std::this_thread::get_id() << " notify: before lock. \n";
-            std::lock_guard lg(mut);
-            sout << std::this_thread::get_id() << " notify: locked!\n";
-        }
-
-        sout << std::this_thread::get_id() << " notify: unlocked. NOTIFY ALL\n";
-        cv.notify_all();
-
-        sout << std::this_thread::get_id() << " notify: before sleep (again).\n";
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        {
-            sout << std::this_thread::get_id() << " notify: before lock (again). \n";
-            std::lock_guard lg(mut);
-            sout << std::this_thread::get_id() << " notify: locked! (again)\n";
-            i = 1;
-        }
-
-        sout << std::this_thread::get_id() << " notify: unlocked! NOTIFY ALL (again)\n";
-        cv.notify_all();
-    }
-
-    export void Test_RememberConditionVariables()
-    {
-        //std::osyncstream sout(std::cout);
-
-        sout << "main!\n";
-        std::thread t1(work), t2(work), t3(work), t4(notify);
-        sout << "main: threads created!\n";
-
-        sout << t1.get_id() << " main: before joining!\n";
-        t1.join();
-
-        sout << t2.get_id() << " main: before joining!\n";
-        t2.join();
-
-        sout << t3.get_id() << " main: before joining!\n";
-        t3.join();
-
-        sout << t4.get_id() << " main: before joining!\n";
-        t4.join();
-    }
-} // end of namespace threadlab
+class Top : public Middle
+{
+public:
+    void top() { std::cout << "top" << std::endl; }
+};
