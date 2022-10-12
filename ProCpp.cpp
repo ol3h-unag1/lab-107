@@ -7,8 +7,9 @@ import Misc;
 
 import TraceLifeTime;
 
+//visitor;
+
 int main()
 {
-    TraceLifeTime tlt(313);
 
 }
