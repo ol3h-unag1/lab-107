@@ -192,8 +192,9 @@ export void TestAccumAndSum()
     std::cout << result3 << std::endl;
 }
 
-
-
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+// Dummy hierachy 
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 class Base
 {
 public:
@@ -211,3 +212,31 @@ class Top : public Middle
 public:
     void top() { std::cout << "top" << std::endl; }
 };
+
+
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+// Pointers blurring away constnest of class methods:
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+class PointersViolatingConstSemantics
+{
+public:
+    PointersViolatingConstSemantics(int i)
+        : _value{ std::make_unique< int >(i) }
+    {
+        *_value = i;
+    }
+
+    int getValue() const
+    {
+        return ++(*_value);
+    }
+
+private:
+    std::unique_ptr< int > _value;
+};
+
+void Test_PointersViolatingConstSemantics()
+{
+    PointersViolatingConstSemantics s{ 1 };
+    std::cout << s.getValue() << " " << s.getValue() << std::endl;
+}
