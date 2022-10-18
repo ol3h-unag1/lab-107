@@ -6,7 +6,7 @@ import <syncstream>;
 import <algorithm>;
 import <vector>;
 
-
+import <map>;
 
 import type_name;
 
@@ -239,4 +239,28 @@ void Test_PointersViolatingConstSemantics()
 {
     PointersViolatingConstSemantics s{ 1 };
     std::cout << s.getValue() << " " << s.getValue() << std::endl;
+}
+
+
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+// map::operator[]
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+class NoDefaultCtor
+{
+public:
+    NoDefaultCtor() = delete;
+    NoDefaultCtor(int i) {}
+};
+void test_no_default()
+{
+    std::map< int, NoDefaultCtor > i2NDC;
+
+    NoDefaultCtor ndc1{ 1 };
+    NoDefaultCtor ndc2{ 2 };
+
+    i2NDC.insert({ 1, ndc1 });
+    i2NDC.insert({ 2, ndc2 });
+
+    //auto a{ i2NDC[1] }; // won't compile
+
 }
