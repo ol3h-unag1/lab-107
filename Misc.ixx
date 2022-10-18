@@ -215,7 +215,7 @@ public:
 
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
-// Pointers blurring away constnest of class methods:
+// Pointers blurring away constness of class methods:
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 class PointersViolatingConstSemantics
 {
