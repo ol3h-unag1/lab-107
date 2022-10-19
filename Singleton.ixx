@@ -52,3 +52,6 @@ private:
 
 template< int ID >
 std::weak_ptr< Singleton< ID > > Singleton< ID >::_instance;
+
+
+/// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
