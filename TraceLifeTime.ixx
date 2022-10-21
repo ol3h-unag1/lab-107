@@ -2,6 +2,8 @@ export module TraceLifeTime;
 
 import <iostream>;
 
+import Log;
+
 auto& os = std::cout; // should not throw an exception (add check of exception mask in noexcept for TLT c-tors, ops= and d-tor?)
 
 export class TraceLifeTime final
@@ -55,4 +57,19 @@ public:
 
 private:
     int _i = -111;
+};
+
+using namespace Log;
+
+export class Tracer final {
+public:
+    using out_type = decltype(std::cout);
+public:
+
+    Tracer(out_type& out) 
+    : _log(out) {
+    }
+
+private:
+    Logger< out_type > _log;
 };

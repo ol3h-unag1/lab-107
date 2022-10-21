@@ -55,3 +55,100 @@ std::weak_ptr< Singleton< ID > > Singleton< ID >::_instance;
 
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+namespace TGGTTN
+{
+    class Top;
+    class Middle;
+    class Bottom;
+
+    auto GetName(Top const*)
+    {
+        return "Top";
+    }    
+    
+    auto GetName(Middle const*)
+    {
+        return "Middle";
+    }    
+    
+    auto GetName(Bottom const*)
+    {
+        return "Bottom";
+    }
+
+    export class Top
+    {
+    public:
+        virtual ~Top() = default;
+
+    public:
+        virtual std::string_view getName() const noexcept {
+            return GetName(this); 
+        }
+
+    public:
+        void top() { std::cout << "top" << std::endl; }
+    };
+
+    export class Middle : public Top
+    {
+    public:
+        std::string_view getName() const noexcept override {
+            return GetName(this);
+        }
+
+    public:
+        void middle() { std::cout << "middle" << std::endl; }
+    };
+
+    export class Bottom : public Middle
+    {
+    public:
+        std::string_view getName() const noexcept override {
+            return GetName(this);
+        }
+
+        void bottom() { std::cout << "bottom" << std::endl; }
+    };
+
+    export
+    template< class T, int Tag >
+    class Taggetton
+    {
+    private:
+        Taggetton() = default;
+        ~Taggetton() = default;
+
+    public:
+        static bool hasInstance() {
+            return not _weakInstance.expired();
+        }
+
+        using element_type = T;
+        using value_type = std::shared_ptr< element_type >;
+
+        template< class Dynamic = T >
+        static value_type getInstance()
+        {
+            if (hasInstance()) {
+                return _weakInstance.lock();
+            }
+            else {
+                auto s{ std::make_shared<Dynamic>() };
+                _weakInstance = s;
+                return s;
+            }
+        }
+
+        T* operator->() const {
+            if (hasInstance())
+                return _weakInstance.lock().get();
+        }
+
+    private:
+        static std::weak_ptr < T > _weakInstance;;
+    };
+
+    template< class T, int Tag >
+    std::weak_ptr < T > Taggetton< T, Tag >::_weakInstance{};
+}

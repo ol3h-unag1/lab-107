@@ -1,0 +1,3 @@
+module Log;
+
+// empty
