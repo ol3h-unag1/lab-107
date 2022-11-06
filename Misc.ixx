@@ -7,6 +7,8 @@ import <algorithm>;
 import <vector>;
 
 import <map>;
+import <memory>;
+import <optional>;
 
 import type_name;
 
@@ -215,30 +217,36 @@ public:
 
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
-// Pointers blurring away constness of class methods:
+// Pointers blurring away constness of class methods, use optionals instead
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
 class PointersViolatingConstSemantics
 {
 public:
     PointersViolatingConstSemantics(int i)
-        : _value{ std::make_unique< int >(i) }
+        : _up{ std::make_unique< int >(i) }
+        , _opt{ i }
     {
-        *_value = i;
     }
 
-    int getValue() const
+    int getValuePtr() const
     {
-        return ++(*_value);
+        return ++(*_up);
+    }
+
+    int getValueOptional() const
+    {
+        return *_opt; // can't change the value since optional::operator* returns const value
     }
 
 private:
-    std::unique_ptr< int > _value;
+    std::unique_ptr< int > _up;
+    std::optional< int > _opt;
 };
 
-void Test_PointersViolatingConstSemantics()
+export void Test_PointersViolatingConstSemantics()
 {
-    PointersViolatingConstSemantics s{ 1 };
-    std::cout << s.getValue() << " " << s.getValue() << std::endl;
+    PointersViolatingConstSemantics const s{ 1 };
+    std::cout << s.getValuePtr() << " " << s.getValueOptional() << std::endl;
 }
 
 
