@@ -38,18 +38,60 @@ export void testDefaultParametersInOverridenMethods()
 }
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 
+// trims
+
+auto isSpacePred{ [](auto const& e) { return std::isspace(e); } };
+
 // returns number of spaces removed
 export
 std::size_t RoundTrim(std::string& s)
 {
     auto const beforeTrim{ s.size() };
 
-    auto isSpace{ [](auto const& e) { return std::isspace(e); } };
-
-    s.erase(cbegin(s), std::find_if_not(cbegin(s), cend(s), isSpace));
-    s.erase(std::find_if_not(crbegin(s), crend(s), isSpace).base(), end(s));
+    // ' asdasd '
+    s.erase(cbegin(s), std::find_if_not(cbegin(s), cend(s), isSpacePred));
+    s.erase(std::find_if_not(crbegin(s), crend(s), isSpacePred).base(), end(s));
 
     return beforeTrim - s.size();
+};
+
+// returns trimmed string
+export
+std::string InplaceRoundTrim(std::string&& s)
+{
+    std::string result{ std::move(s) };
+
+    result.erase(cbegin(result), std::find_if_not(cbegin(result), cend(result), isSpacePred));
+    result.erase(std::find_if_not(crbegin(result), crend(result), isSpacePred).base(), end(result));
+    
+    return result;
+};
+
+// trims custom characters from begin and from end
+// return trimmed string
+export
+std::string InplaceRoundTrim(std::string&& s, char trimFromBegin, char trimFromEnd)
+{
+    std::string result{ std::move(s) };
+
+    auto beginPred{ 
+        [trimFromBegin](auto& c)
+        {
+            return c == trimFromBegin;
+        } 
+    };
+
+    auto endPred{
+    [trimFromEnd](auto& c)
+    {
+        return c == trimFromEnd;
+    }
+    };
+
+    result.erase(cbegin(result), std::find_if_not(cbegin(result), cend(result), beginPred));
+    result.erase(std::find_if_not(crbegin(result), crend(result), endPred).base(), end(result));
+
+    return result;
 };
 
 /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// 

@@ -249,3 +249,5 @@ x64/Debug/ProCpp.vcxproj.FileListAbsolute.txt
 *.obj
 *.dt
 *.command
+build_target_log_plain_edited.txt
+warnigns.csv
