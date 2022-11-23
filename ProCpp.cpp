@@ -18,7 +18,10 @@ import <source_location>;
 
 import Misc;
 
+using std::begin;
 using std::cbegin;
+
+using std::end;
 using std::cend;
 
 bool breakPath{ true }; // to break (or not) path in directories for output "/home/user/source.cpp" -> "home" "user" "source.cpp"
@@ -181,11 +184,27 @@ std::ostream& operator<<(std::ostream& os, Warning const& w)
     return os;
 }
 
-void ParseInputFileWarnings( std::ifstream& is )
+std::size_t GetParsedPathLength(std::string const& path)
 {
-    std::unordered_map< std::string, std::size_t > warning2count{};
+    return std::count(cbegin(path), cend(path), warningOutputSeparator);
+}
 
+void NormalizePath(std::string& path, std::size_t currLen, std::size_t const normalizedLen)
+{
+    while (currLen < normalizedLen)
+    {
+        path.insert(cbegin(path), warningOutputSeparator);
+        currLen++;
+    }
+}
+
+void ParseInputFileWarnings(std::ifstream& is)
+{
+    std::unordered_map< std::string, std::size_t > warningsRatio{};
+
+    std::size_t longestPathLength{ 0u }; // needed to normalize all broken path Lengths
     std::size_t inputFileLine{ 0u };
+
     std::vector< Warning > warnings;
 
     std::string inputStr;
@@ -201,7 +220,7 @@ void ParseInputFileWarnings( std::ifstream& is )
         auto const [line, column] { ExtLineColumn(inputStr)};
         auto const message{ ExtMessage(inputStr) };
         auto const [option, description] { ExtWarningDescription(inputStr) };
-        
+
         if (path.empty())
         {
             std::cout << "path is empty on line " << inputFileLine << std::endl;
@@ -240,25 +259,45 @@ void ParseInputFileWarnings( std::ifstream& is )
                 path += p.string() + warningOutputSeparator;
             }
 
-            if (not path.empty() && (path.front() == pathBeginSymbol))
+            auto frontSymbolsToRemove = { pathBeginSymbol, warningOutputSeparator };
+            auto removeBeginPred = [&path](auto const& c) { return path.front() == c; };
+            while (not path.empty() && std::any_of(cbegin(frontSymbolsToRemove), cend(frontSymbolsToRemove), removeBeginPred))
             {
                 path.erase(cbegin(path));
             }
 
-            if (not path.empty() && (path.back() == warningOutputSeparator))
+            while (not path.empty() && (path.back() == warningOutputSeparator))
             {
                 path.pop_back();
             }
+
+            longestPathLength = std::max(longestPathLength, GetParsedPathLength(path));
         }
 
-        warnings.emplace_back( path, filename, line, column, message, option, description );
+        warnings.emplace_back(path, filename, line, column, message, option, description);
 
-        warning2count[option]++;
+        warningsRatio[option]++;
 
         inputFileLine++;
     }
     is.close();
     is.clear();
+
+    if (breakPath)
+    {
+        // to costly, need a find a way to create a modifable view that contains only 'path' data member referenses
+        //std::transform(begin(warnings), end(warnings), begin(warnings),
+        //    [longestPathLength](auto& warning)
+        //    {
+        //        NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
+        //        return warning;
+        //    });
+
+        for (auto& warning : warnings)
+        {
+            NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
+        };
+    }
 
     std::cout << warnings.size() << " warnings parsed." << std::endl;
 
@@ -269,7 +308,7 @@ void ParseInputFileWarnings( std::ifstream& is )
         os << warning << "\n";
     }
     
-    for (auto const& w2c : warning2count)
+    for (auto const& w2c : warningsRatio)
     {
         std::cout << w2c.first << "  " << w2c.second << std::endl;
     }
