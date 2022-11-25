@@ -285,18 +285,25 @@ void ParseInputFileWarnings(std::ifstream& is)
 
     if (breakPath)
     {
-        // to costly, need a find a way to create a modifable view that contains only 'path' data member referenses
+        // #1 common transform
         //std::transform(begin(warnings), end(warnings), begin(warnings),
-        //    [longestPathLength](auto& warning)
+        //    [longestPathLength](auto& warning) -> auto&
         //    {
         //        NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
         //        return warning;
         //    });
 
-        for (auto& warning : warnings)
+        // #2 simple range-for
+        //for (auto& warning : warnings)
+        //{
+        //    NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
+        //};
+
+        // #3 views (perfect)
+        for (auto& path : warnings | std::views::transform(&Warning::path))
         {
-            NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
-        };
+            NormalizePath(path, GetParsedPathLength(path), longestPathLength);
+        }
     }
 
     std::cout << warnings.size() << " warnings parsed." << std::endl;
