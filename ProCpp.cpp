@@ -24,8 +24,6 @@ using std::cbegin;
 using std::end;
 using std::cend;
 
-bool breakPath{ true }; // to break (or not) path in directories for output "/home/user/source.cpp" -> "home" "user" "source.cpp"
-
 auto const inputFile { "build_target_log_plain_edited.txt" };
 auto const outputFile{ "warnigns.csv" };
 
@@ -165,6 +163,7 @@ void TestStringParser()
 
 struct Warning
 {
+    std::string brokenPath;
     std::string path;
     std::string filename;
     std::string line;
@@ -178,13 +177,13 @@ auto const warningOutputSeparator{ '^' };
 
 std::ostream& operator<<(std::ostream& os, Warning const& w)
 {
-    os << w.path << warningOutputSeparator << w.filename << warningOutputSeparator << 
+    os << w.brokenPath << warningOutputSeparator << w.path << warningOutputSeparator << w.filename << warningOutputSeparator <<
           w.line << warningOutputSeparator << w.column << warningOutputSeparator << 
           w.message << warningOutputSeparator << w.compilerOption << warningOutputSeparator << w.warningDescription;
     return os;
 }
 
-std::size_t GetParsedPathLength(std::string const& path)
+std::size_t GetBrokenPathLength(std::string const& path)
 {
     return std::count(cbegin(path), cend(path), warningOutputSeparator);
 }
@@ -202,7 +201,7 @@ void ParseInputFileWarnings(std::ifstream& is)
 {
     std::unordered_map< std::string, std::size_t > warningsRatio{};
 
-    std::size_t longestPathLength{ 0u }; // needed to normalize all broken path Lengths
+    std::size_t longestBrokenPathLength{ 0u }; // needed to normalize all broken path Lengths
     std::size_t inputFileLine{ 0u };
 
     std::vector< Warning > warnings;
@@ -220,7 +219,32 @@ void ParseInputFileWarnings(std::ifstream& is)
         auto const [line, column] { ExtLineColumn(inputStr)};
         auto const message{ ExtMessage(inputStr) };
         auto const [option, description] { ExtWarningDescription(inputStr) };
+  
+        auto const pathWithoutFilename{ std::filesystem::path(path).remove_filename() };
+        std::string brokenPath{};
+        for (auto const& p : pathWithoutFilename)
+        {
+            brokenPath += p.string() + warningOutputSeparator;
+        }
 
+        auto frontSymbolsToRemove = { pathBeginSymbol, warningOutputSeparator };
+        auto removeBeginPred = [&brokenPath](auto const& c) { return brokenPath.front() == c; };
+        while (not brokenPath.empty() && std::any_of(cbegin(frontSymbolsToRemove), cend(frontSymbolsToRemove), removeBeginPred))
+        {
+            brokenPath.erase(cbegin(brokenPath));
+        }
+
+        while (not brokenPath.empty() && (brokenPath.back() == warningOutputSeparator))
+        {
+            brokenPath.pop_back();
+        }
+
+        longestBrokenPathLength = std::max(longestBrokenPathLength, GetBrokenPathLength(brokenPath));
+
+        if (brokenPath.empty())
+        {
+            std::cout << "brokenPath is empty on line " << inputFileLine << std::endl;
+        }
         if (path.empty())
         {
             std::cout << "path is empty on line " << inputFileLine << std::endl;
@@ -250,31 +274,7 @@ void ParseInputFileWarnings(std::ifstream& is)
             std::cout << "description is empty on line " << inputFileLine << std::endl;
         }
 
-        if (breakPath)
-        {
-            auto const pathWithoutFilename{ std::filesystem::path(path).remove_filename() };
-            path.clear();
-            for (auto const& p : pathWithoutFilename)
-            {
-                path += p.string() + warningOutputSeparator;
-            }
-
-            auto frontSymbolsToRemove = { pathBeginSymbol, warningOutputSeparator };
-            auto removeBeginPred = [&path](auto const& c) { return path.front() == c; };
-            while (not path.empty() && std::any_of(cbegin(frontSymbolsToRemove), cend(frontSymbolsToRemove), removeBeginPred))
-            {
-                path.erase(cbegin(path));
-            }
-
-            while (not path.empty() && (path.back() == warningOutputSeparator))
-            {
-                path.pop_back();
-            }
-
-            longestPathLength = std::max(longestPathLength, GetParsedPathLength(path));
-        }
-
-        warnings.emplace_back(path, filename, line, column, message, option, description);
+        warnings.emplace_back(brokenPath, path, filename, line, column, message, option, description);
 
         warningsRatio[option]++;
 
@@ -283,28 +283,27 @@ void ParseInputFileWarnings(std::ifstream& is)
     is.close();
     is.clear();
 
-    if (breakPath)
+    // #1 common transform
+    //std::transform(begin(warnings), end(warnings), begin(warnings),
+    //    [longestBrokenPathLength](auto& warning) -> auto&
+    //    {
+    //        NormalizePath(warning.path, GetBrokenPathLength(warning.path), longestBrokenPathLength);
+    //        return warning;
+    //    });
+
+    // #2 simple range-for
+    //for (auto& warning : warnings)
+    //{
+    //    NormalizePath(warning.path, GetBrokenPathLength(warning.path), longestBrokenPathLength);
+    //};
+
+    // #3 views (perfect)
+    for (auto& brokPath : warnings |
+        std::views::transform(&Warning::brokenPath))
     {
-        // #1 common transform
-        //std::transform(begin(warnings), end(warnings), begin(warnings),
-        //    [longestPathLength](auto& warning) -> auto&
-        //    {
-        //        NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
-        //        return warning;
-        //    });
-
-        // #2 simple range-for
-        //for (auto& warning : warnings)
-        //{
-        //    NormalizePath(warning.path, GetParsedPathLength(warning.path), longestPathLength);
-        //};
-
-        // #3 views (perfect)
-        for (auto& path : warnings | std::views::transform(&Warning::path))
-        {
-            NormalizePath(path, GetParsedPathLength(path), longestPathLength);
-        }
+        NormalizePath(brokPath, GetBrokenPathLength(brokPath), longestBrokenPathLength);
     }
+
 
     std::cout << warnings.size() << " warnings parsed." << std::endl;
 
@@ -333,7 +332,6 @@ int main()
     {
         ParseInputFileWarnings(is);
     }
-
-    
+  
     return 0;
 }
