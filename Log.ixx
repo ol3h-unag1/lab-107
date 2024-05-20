@@ -3,17 +3,24 @@ export module Log;
 import <exception>;
 import <queue>;
 import <string>;
+import <cstdint>;
 
 export namespace Log {
+
+
 
     template< class Output  >
     class Logger final
     {
-    public:
-
+    private:
         // out must outlive this please
-        Logger(Output& out) 
+        Logger(Output& out, void* owner = nullptr) 
             : _out( out ) {
+
+            if (owner == nullptr) 
+            {
+                throw std::exception("Logger ctor no owner");
+            }
         }
 
         // no default please
@@ -51,9 +58,13 @@ export namespace Log {
         }
 
     private:
-        std::queue< std::string > _messages;
+        std::queue< std::string > _messages; 
+        const std::uint32_t _flush_on_size = 32u;
 
         Output& _out;
+
+    protected:
+        void* owner_ = nullptr;
     };
 
 

@@ -3,8 +3,6 @@ export module Singleton;
 import <iostream>;
 import <source_location>;
 
-import TraceLifeTime;
-
 export template< int ID >
 class Singleton
 {
@@ -46,8 +44,6 @@ public:
 
 private:
     static std::weak_ptr< Singleton > _instance;
-
-    TraceLifeTime tlt;
 };
 
 template< int ID >
