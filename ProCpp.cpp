@@ -115,11 +115,11 @@ namespace messy_details
 /// 
 /// </summary>
 /// 
-template<typename Logger>
-class Auto : public Logger // 1nterface
+template<typename LoggerRepType>
+class Auto // 1nterface
 {
 public:
-    Auto(Logger logger)
+    Auto(typename LoggerRepType logger)
         : _logger(logger) {
         throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
     }
@@ -144,7 +144,7 @@ private:
     static inline messy_details::Int16Range const _c_directed_range{0, 90};
     static inline messy_details::Int16Range const _c_direction_numerical_representation_range{-1, 1};
 
-    std::shared_ptr<Logger> _logger;
+    LoggerRepType _logger;
 };
 
 template<typename Logger>
@@ -204,9 +204,17 @@ int main()
 {
 
     try {
-        Auto<Dummy> a;
-        a.turn(1, 30);
-        a.ignition();
+        using OutType = std::decay_t<decltype(std::cout)>;
+
+        using LoggerType = Log::Logger<OutType>;
+        using LogerRep = LoggerType::Representation;
+        LoggerType logger_stat{ std::cout };
+
+        auto logger = LoggerType::build(std::move(std::cout));
+        Auto a(logger);
+
+        //a.turn(1, 30);
+        //a.ignition();
     }
     catch (std::exception& e) {
         std::cout << e.what() << std::endl;
