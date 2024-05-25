@@ -123,9 +123,7 @@ public:
         : _logger(logger) {
         throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
     }
-    Auto() {
-        throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
-    }
+    Auto() = delete;
 
     bool ignition(); // toggle ignition; returns = true ignitinon=On, false igntino=Off
     void acc(); // power app accesories
@@ -162,7 +160,8 @@ void Auto<Logger>::acc() {
 }
 template<typename Logger>
 void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle)
-{
+{ 
+    
     messy_details::turnWheelInputCheck(
         Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range, 
         Auto<Logger>::_c_direction_numerical_representation_range,
@@ -207,10 +206,9 @@ int main()
         using OutType = std::decay_t<decltype(std::cout)>;
 
         using LoggerType = Log::Logger<OutType>;
-        using LogerRep = LoggerType::Representation;
-        LoggerType logger_stat{ std::cout };
+        using LogerRep = LoggerType::Representation; 
 
-        auto logger = LoggerType::build(std::move(std::cout));
+        auto logger = LoggerType::build(std::cout);
         Auto a(logger);
 
         //a.turn(1, 30);
