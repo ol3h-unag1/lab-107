@@ -11,49 +11,10 @@ import <format>;
 import <cstdint>;
 
 import Log; 
+using namespace Log;
 
 namespace messy_details
-{ 
-
-    class StringExc : public std::exception
-    {
-    public:
-        using NumericType = std::size_t;
-    public:
-        StringExc(std::string const& str)
-            : actual_size_(str.size())
-        {
-            auto message_size = std::min(size(), capacity());
-            memcpy(buff_, str.c_str(), message_size);
-        }
-
-        const char* what() const override {
-
-            return buff_;
-        }
- 
-        NumericType size() const {
-
-            return actual_size_;
-        }
-
-        NumericType capacity() const {
-
-            return c_string_exc_buff_size_; 
-        }
-
-        bool overflow() const {
-
-            return size() > capacity();
-        }
-
-
-    private:
-        static NumericType constexpr c_string_exc_buff_size_ = 512;
-        char buff_[c_string_exc_buff_size_];
-        NumericType actual_size_;
-    };
-
+{
     /// <summary>
     /// 
     /// </summary>
@@ -65,7 +26,7 @@ namespace messy_details
 
         Int16Range(ValueType min, ValueType max) {
             if (min > max)
-                throw StringExc(std::format("{} | min:{} argument is bigger then max:{}", __FUNCTION__, min, max));
+                throw Log::StringExc(std::format("{} | min:{} argument is bigger then max:{}", __FUNCTION__, min, max));
                 
             min_ = min;
             max_ = max;
@@ -97,10 +58,10 @@ namespace messy_details
     void includingRangeThrow(Range range, Value value)
     {
         if (value > range)
-            throw StringExc(std::format("value {} is too big for range [{},{}]", value, range.min(), range.max()));
+            throw Log::StringExc(std::format("value {} is too big for range [{},{}]", value, range.min(), range.max()));
 
         if (value < range)
-            throw StringExc(std::format("value {} is too small for range [{},{}]", value, range.min(), range.max()));
+            throw Log::StringExc(std::format("value {} is too small for range [{},{}]", value, range.min(), range.max()));
     }
 
     template<typename RangeType>
@@ -121,7 +82,7 @@ class Auto // 1nterface
 public:
     Auto(typename LoggerRepType logger)
         : _logger(logger) {
-        throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
+
     }
     Auto() = delete;
 
@@ -148,22 +109,21 @@ private:
 template<typename Logger>
 bool Auto<Logger>::ignition() {
     // state?
-    throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
+    throw Log::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
     return false;
 }
 
 template<typename Logger>
 void Auto<Logger>::acc() {
     // side effect acc state?
-    throw messy_details::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
+    throw Log::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__));
 
 }
 template<typename Logger>
 void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle)
 { 
-    
     messy_details::turnWheelInputCheck(
-        Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range, 
+        (Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range),
         Auto<Logger>::_c_direction_numerical_representation_range,
         direction,
         angle);
@@ -190,7 +150,7 @@ void Auto<Logger>::turn_Implementation(std::int16_t direction, std::int16_t angl
         return;
     }
 
-    throw messy_details::StringExc(std::format("{} unexpected branch!", __FUNCTION__));
+    throw Log::StringExc(std::format("{} unexpected branch!", __FUNCTION__));
 }
 
 class Dummy
@@ -202,17 +162,17 @@ public:
 int main()
 {
 
+
+    using OutType = std::decay_t<decltype(std::cout)>;
+    using LoggerType = Log::Logger<OutType>;
+    using LogerRep = LoggerType::Representation;
+
+    auto logger = LoggerType::build(std::cout);
+
+    Auto<LogerRep> a(logger);
+
     try {
-        using OutType = std::decay_t<decltype(std::cout)>;
 
-        using LoggerType = Log::Logger<OutType>;
-        using LogerRep = LoggerType::Representation; 
-
-        auto logger = LoggerType::build(std::cout);
-        Auto a(logger);
-
-        //a.turn(1, 30);
-        //a.ignition();
     }
     catch (std::exception& e) {
         std::cout << e.what() << std::endl;
