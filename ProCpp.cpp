@@ -122,13 +122,17 @@ void Auto<Logger>::acc() {
 template<typename Logger>
 void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle)
 { 
-    messy_details::turnWheelInputCheck(
-        (Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range),
-        Auto<Logger>::_c_direction_numerical_representation_range,
-        direction,
-        angle);
+    auto impl = [&]() {
+        messy_details::turnWheelInputCheck(
+            (Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range),
+            Auto<Logger>::_c_direction_numerical_representation_range,
+            direction,
+            angle);
 
-    turn_Implementation(direction, angle);
+        turn_Implementation(direction, angle);
+        };
+    auto logger = _logger;
+    logger.execute(impl);
 }
 
 template<typename Logger>
@@ -161,18 +165,15 @@ public:
 
 int main()
 {
-
-
-    using OutType = std::decay_t<decltype(std::cout)>;
-    using LoggerType = Log::Logger<OutType>;
-    using LogerRep = LoggerType::Representation;
-
-    auto logger = LoggerType::build(std::cout);
-
-    Auto<LogerRep> a(logger);
-
     try {
+        using OutType = std::decay_t<decltype(std::cout)>;
+        using LoggerType = Log::Logger<OutType>;
+        using LogerRep = LoggerType::Representation;
 
+        auto logger = LoggerType::build(std::cout);
+
+        Auto<LogerRep> a(logger);
+        a.turn(-2, 100);
     }
     catch (std::exception& e) {
         std::cout << e.what() << std::endl;

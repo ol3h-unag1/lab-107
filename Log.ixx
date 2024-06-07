@@ -65,9 +65,9 @@ export namespace Log {
     template<typename Output>
     class Logger
     {
-    private:
-        // out must outlive this please
+    public:
 
+        // out must outlive this please
         explicit Logger(Output& out )
             : _out(out) {
 
@@ -75,19 +75,19 @@ export namespace Log {
 
         virtual ~Logger() {
 
-            flush();
+            print();
         }
 
         // no default please
         Logger() = delete;
 
         // no any copy/assign ops please
-        Logger(Logger&) = delete;
+        Logger(Logger&) = default;
 
         
 
     public:
-        using Representation = std::shared_ptr<Logger>;
+        using Representation = Logger;
 
     private:
         struct AccessManager : Logger
@@ -117,7 +117,8 @@ export namespace Log {
         static
         typename Representation build(Output& data) {
 
-            return std::make_shared<AccessManager>(data);
+            return //std::make_unique<AccessManager>(data);
+                Logger(data);
         }
 
         // your journey ends here (< TMP)
@@ -137,16 +138,35 @@ export namespace Log {
         //}
 
         // outputs messages queue
-        void flush() {
+        void print() {
 
-            bool flush{ not _messages.empty() };
             while ( not _messages.empty() )
             {
-                _out << "\n";
+                _out << _messages.front() << "\n";
                 _messages.pop();
             }
-            if (flush)
-                _out.flush();
+            
+            // implement a flush function for custom input
+            // requiremetns for input
+            // is to flush
+            _out.flush();
+        }
+
+    public:
+        template<typename Callable>
+        void execute(Callable callable) {
+
+            try {
+                callable();
+            }
+            catch (StringExc& se)
+            {
+                log(se.what());
+            }
+            catch (...)
+            {
+                throw;
+            }
         }
 
     private:
