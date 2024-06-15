@@ -1,3 +1,8 @@
+// (c) Kamenschykov Oleh, 2024
+// free to use by extraterestials only
+//
+// v.1
+
 #include <iostream>
 #include <algorithm>
 #include <numeric>
@@ -25,6 +30,7 @@ namespace messy_details
         using ValueType = std::int16_t;
 
         Int16Range(ValueType min, ValueType max) {
+
             if (min > max)
                 throw Log::StringExc(std::format("{} | min:{} argument is bigger then max:{}", __FUNCTION__, min, max));
                 
@@ -89,7 +95,7 @@ public:
     bool ignition(); // toggle ignition; returns = true ignitinon=On, false igntino=Off
     void acc(); // power app accesories
     void turn(std::int16_t direction, std::int16_t angle); // 0 - absolute direction; angle[-180:180]   
-                                                           // 1 - CW, -1 CCW; angle[0;90]
+                                                           // 1 - turn CW, -1 - turn CCW; angle[0;90]
 private:
     void turn_Implementation(std::int16_t direction, std::int16_t angle);
 
@@ -120,8 +126,8 @@ void Auto<Logger>::acc() {
 
 }
 template<typename Logger>
-void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle)
-{ 
+void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle) { 
+
     auto impl = [&]() {
         messy_details::turnWheelInputCheck(
             (Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range),
@@ -131,6 +137,7 @@ void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle)
 
         turn_Implementation(direction, angle);
         };
+
     auto logger = _logger;
     logger.execute(impl);
 }
@@ -165,7 +172,8 @@ public:
 
 int main()
 {
-    try {
+    try 
+    {
         using OutType = std::decay_t<decltype(std::cout)>;
         using LoggerType = Log::Logger<OutType>;
         using LogerRep = LoggerType::Representation;
@@ -175,7 +183,8 @@ int main()
         Auto<LogerRep> a(logger);
         a.turn(-2, 100);
     }
-    catch (std::exception& e) {
+    catch (std::exception& e) 
+    {
         std::cout << e.what() << std::endl;
     }
     catch (...)

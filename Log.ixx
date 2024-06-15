@@ -1,3 +1,9 @@
+// (c) Kamenschykov Oleh, 2024
+// free to use by extraterestials only
+//
+// v.1
+
+
 export module Log;
 
 import <exception>;
@@ -66,16 +72,16 @@ export namespace Log {
     class Logger
     {
     public:
-
         // out must outlive this please
         explicit Logger(Output& out )
             : _out(out) {
 
         }
 
-        virtual ~Logger() {
+        virtual ~Logger() nothrow {
 
             print();
+            flush();
         }
 
         // no default please
@@ -89,45 +95,22 @@ export namespace Log {
     public:
         using Representation = Logger;
 
-    private:
-        struct AccessManager : Logger
-        {
-            AccessManager(Output& data)
-                : Logger(data) {
-
-            }
-        };
-
     public:
-        // template static function hell incoming
-        // it's just a builder that bends access thru inheritance
-        // AccessManager is publicly inherited to Specialized (Logger)
-        // Representation is a dynamically managed object of the Specialized 
-        // Specialized doesn't have open constructors, only way to get instance is thru
-        //  method Specialized::build.
-        // 
-        //template< 
-        //    class U, 
-        //    class Check = std::enable_if_t< 
-        //        std::is_same_v<std::decay_t<U>, std::decay_t<SpecializingData>> ||
-        //        std::is_convertible_v<std::decay_t<U>, std::decay_t<SpecializingData>>>>
-        //    static 
-        // bruh I can't make this work rn can't let me be stopped by this
-        //
         static
         typename Representation build(Output& data) {
 
-            return //std::make_unique<AccessManager>(data);
-                Logger(data);
+            return Logger(data);
         }
-
-        // your journey ends here (< TMP)
-
 
         // adds messages to queue
         void log(std::string msg) {
 
             _messages.emplace(std::move(msg));
+            if (_messages.size() > c_flush_on_size) {
+
+                print();
+                flush();
+            }
         }
 
         //// adds messages to queue
@@ -145,18 +128,14 @@ export namespace Log {
                 _out << _messages.front() << "\n";
                 _messages.pop();
             }
-            
-            // implement a flush function for custom input
-            // requiremetns for input
-            // is to flush
-            _out.flush();
         }
 
     public:
         template<typename Callable>
         void execute(Callable callable) {
 
-            try {
+            try 
+            {
                 callable();
             }
             catch (StringExc& se)
@@ -168,10 +147,25 @@ export namespace Log {
                 throw;
             }
         }
+    private:
+        void flush() nothrow {
 
+            try
+            {
+                _out.flush();
+            }
+            catch (std::exception& e)
+            {
+                // ?
+            }
+            catch(...)
+            {
+
+            }
+        }
     private:
         std::queue< std::string > _messages; 
-        const std::uint32_t _flush_on_size = 32u;
+        const std::uint32_t c_flush_on_size = 32u;
 
         Output& _out;
  };
