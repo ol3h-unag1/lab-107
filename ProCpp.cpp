@@ -141,7 +141,11 @@ void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle) {
         };
 
     auto logger = _logger;
-    logger.execute(impl);
+    auto excopt = logger.execute(impl);
+    if (excopt)
+    {
+        std::rethrow_exception(excopt.value());
+    }
 }
 
 template<typename Logger>
