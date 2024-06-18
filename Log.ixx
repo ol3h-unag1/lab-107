@@ -10,9 +10,11 @@ import <exception>;
 import <memory>;
 import <queue>;
 import <string>;
+import <format>;
 import <cstdint>;
 import <functional>;
 import <exception>;
+import <optional>;
 
 
 
@@ -78,7 +80,7 @@ export namespace Log {
 
         }
 
-        virtual ~Logger() nothrow {
+        virtual ~Logger() noexcept {
 
             print();
             flush();
@@ -105,8 +107,8 @@ export namespace Log {
         // adds messages to queue
         void log(std::string msg) {
 
-            _messages.emplace(std::move(msg));
-            if (_messages.size() > c_flush_on_size) {
+            _client_messages.emplace(std::move(msg));
+            if (_client_messages.size() > c_flush_on_size) {
 
                 print();
                 flush();
@@ -123,16 +125,16 @@ export namespace Log {
         // outputs messages queue
         void print() {
 
-            while ( not _messages.empty() )
+            while ( not _client_messages.empty() )
             {
-                _out << _messages.front() << "\n";
-                _messages.pop();
+                _out << _client_messages.front() << "\n";
+                _client_messages.pop();
             }
         }
 
     public:
         template<typename Callable>
-        void execute(Callable callable) {
+        std::optional<std::exception_ptr> execute(Callable callable) noexcept {
 
             try 
             {
@@ -141,14 +143,26 @@ export namespace Log {
             catch (StringExc& se)
             {
                 log(se.what());
+                return {};
+            }
+            catch (std::exception& e)
+            {
+                _errors.emplace(std::move(e.what()));
+                return std::current_exception();
             }
             catch (...)
             {
-                throw;
+                return std::current_exception();
             }
+
+            return {};
         }
+
+    public:
+        
+
     private:
-        void flush() nothrow {
+        void flush() noexcept { // ? rethink whattado with output exceptions
 
             try
             {
@@ -156,18 +170,21 @@ export namespace Log {
             }
             catch (std::exception& e)
             {
-                // ?
+                _errors.emplace(std::format("Client std::exception: {}", std::move(e.what())));
             }
             catch(...)
             {
-
+                _errors.emplace(std::format("Output error: unknown exception [{}]", _errors.size()));
             }
         }
     private:
-        std::queue< std::string > _messages; 
+        std::queue< std::string > _client_messages; 
         const std::uint32_t c_flush_on_size = 32u;
+
+        std::queue< std::string > _errors;
 
         Output& _out;
  };
 
 }
+

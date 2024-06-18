@@ -1,3 +1,5 @@
+
+/// logger main.cpp
 // (c) Kamenschykov Oleh, 2024
 // free to use by extraterestials only
 //
@@ -15,13 +17,13 @@ import <string>;
 import <format>;
 import <cstdint>;
 
-import Log; 
+import Log;
 using namespace Log;
 
 namespace messy_details
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
 
     class Int16Range
@@ -33,11 +35,11 @@ namespace messy_details
 
             if (min > max)
                 throw Log::StringExc(std::format("{} | min:{} argument is bigger then max:{}", __FUNCTION__, min, max));
-                
+
             min_ = min;
             max_ = max;
         }
-        
+
         ValueType max() const { return max_; }
         ValueType min() const { return min_; }
 
@@ -54,12 +56,12 @@ namespace messy_details
     bool operator<(Int16Range::ValueType const& value, Int16Range const& range)
     {
         return value < range.min();
-    }  
+    }
 
-     /// <summary>
-     /// 
-     /// </summary>
-     
+    /// <summary>
+    ///
+    /// </summary>
+
     template<typename Range, typename Value>
     void includingRangeThrow(Range range, Value value)
     {
@@ -79,9 +81,9 @@ namespace messy_details
 }
 
 /// <summary>
-/// 
+///
 /// </summary>
-/// 
+///
 template<typename LoggerRepType>
 class Auto // 1nterface
 {
@@ -94,8 +96,8 @@ public:
 
     bool ignition(); // toggle ignition; returns = true ignitinon=On, false igntino=Off
     void acc(); // power app accesories
-    void turn(std::int16_t direction, std::int16_t angle); // 0 - absolute direction; angle[-180:180]   
-                                                           // 1 - turn CW, -1 - turn CCW; angle[0;90]
+    void turn(std::int16_t direction, std::int16_t angle); // 0 - absolute direction; angle[-180:180]
+    // 1 - turn CW, -1 - turn CCW; angle[0;90]
 private:
     void turn_Implementation(std::int16_t direction, std::int16_t angle);
 
@@ -104,10 +106,10 @@ private:
     std::int16_t _current_angle;
 
 private:
-    static std::int16_t constexpr _c_absolute_direction  = 0;
-    static inline messy_details::Int16Range const _c_absolute_direction_angles_range{-180, 180};
-    static inline messy_details::Int16Range const _c_directed_range{0, 90};
-    static inline messy_details::Int16Range const _c_direction_numerical_representation_range{-1, 1};
+    static std::int16_t constexpr _c_absolute_direction = 0;
+    static inline messy_details::Int16Range const _c_absolute_direction_angles_range{ -180, 180 };
+    static inline messy_details::Int16Range const _c_directed_range{ 0, 90 };
+    static inline messy_details::Int16Range const _c_direction_numerical_representation_range{ -1, 1 };
 
     LoggerRepType _logger;
 };
@@ -126,7 +128,7 @@ void Auto<Logger>::acc() {
 
 }
 template<typename Logger>
-void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle) { 
+void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle) {
 
     auto impl = [&]() {
         messy_details::turnWheelInputCheck(
@@ -149,7 +151,7 @@ void Auto<Logger>::turn_Implementation(std::int16_t direction, std::int16_t angl
     {
         _current_direction = angle > 0 ? 1 : -1;
         _current_angle = std::abs(angle) - Auto<Logger>::_c_directed_range.max();
-        
+
         return;
     }
     else
@@ -172,7 +174,7 @@ public:
 
 int main()
 {
-    try 
+    try
     {
         using OutType = std::decay_t<decltype(std::cout)>;
         using LoggerType = Log::Logger<OutType>;
@@ -183,7 +185,7 @@ int main()
         Auto<LogerRep> a(logger);
         a.turn(-2, 100);
     }
-    catch (std::exception& e) 
+    catch (std::exception& e)
     {
         std::cout << e.what() << std::endl;
     }
@@ -193,3 +195,5 @@ int main()
     }
     return 0;
 }
+
+////
