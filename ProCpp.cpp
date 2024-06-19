@@ -131,6 +131,7 @@ template<typename Logger>
 void Auto<Logger>::turn(std::int16_t direction, std::int16_t angle) {
 
     auto impl = [&]() {
+        //throw std::exception("chekka");
         messy_details::turnWheelInputCheck(
             (Auto<Logger>::_c_absolute_direction == direction ? Auto<Logger>::_c_absolute_direction_angles_range : Auto<Logger>::_c_directed_range),
             Auto<Logger>::_c_direction_numerical_representation_range,
