@@ -16,6 +16,10 @@
 import <string>;
 import <format>;
 import <cstdint>;
+import <optional>;
+import <utility>;
+import <tuple>;
+import <stdexcept>;
 
 import Log;
 using namespace Log;
@@ -79,6 +83,100 @@ namespace messy_details
         includingRangeThrow(range_angle, angle);
     }
 }
+
+enum class Direction
+{
+    Absolute,
+    ClockWise,
+    CounterCW
+};
+
+namespace AutoHelper
+{
+    auto default_direction{ Direction::ClockWise };
+}
+
+using Angle = std::int16_t;
+
+using Error = std::optional<Log::StringExc>;
+
+template<Direction D>
+auto convertImplentation(Angle const a, bool clamp = false);
+
+template<>        
+auto convertImplentation<Direction::Absolute>(Angle const a, bool clamp) {
+
+    if (a == 0)
+    {
+        return std::make_tuple<Direction, Angle, Error>(
+            Direction{ AutoHelper::default_direction },
+            0,
+            {});
+    }
+    else if (a < -180)
+    {
+        return std::make_tuple<Direction, Angle, Error>(
+            Direction::Absolute,
+            clamp ? -180 : a, 
+            Log::StringExc{
+                std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp) 
+            });
+    }
+    else if( a > 180)
+    {
+        return std::make_tuple<Direction, Angle, Error>(
+            Direction::Absolute,
+            clamp ? 180 : a,
+            Log::StringExc{
+                std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp)
+            });
+    }
+    else if( a < 0)
+    { 
+        auto direction = Direction::CounterCW;
+        auto angle = -180 + a;
+        return std::make_tuple<Direction, Angle, Error>(
+            std::move(direction),
+            std::move(angle),
+            Error{}
+        );
+    }
+    else if (a > 0)
+    {
+        auto direction = Direction::ClockWise;
+        auto angle = 180 - a;
+        return std::make_tuple<Direction, Angle, Error>(
+            std::move(direction),
+            std::move(angle),
+            Error{}
+        );
+    }
+    else
+    {
+        throw std::invalid_argument(std::format("unreachable line of code in {} {}:{}", __FUNCTION__, __FILE__, __LINE__));
+    }
+}
+
+auto convert(Angle a, Direction d) {
+
+    if (Direction::Absolute == d)
+    {
+        
+    }
+    else if (Direction::ClockWise == d)
+    {
+
+    }
+    else if (Direction::CounterCW == d)
+    {
+
+    }
+    else
+    {
+        Log::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__)); 
+    } 
+}
+
 
 /// <summary>
 ///
@@ -171,10 +269,10 @@ void Auto<Logger>::turn_Implementation(std::int16_t direction, std::int16_t angl
     throw Log::StringExc(std::format("{} unexpected branch!", __FUNCTION__));
 }
 
-class Dummy
+class Logable;
+class Client
 {
-public:
-    Dummy() = default;
+
 };
 
 int main()
