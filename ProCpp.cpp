@@ -84,98 +84,118 @@ namespace messy_details
     }
 }
 
-enum class Direction
+namespace SteeringDetails::Direction::Convertion
 {
-    Absolute,
-    ClockWise,
-    CounterCW
+    namespace Types
+    {
+        enum class Direction
+        {
+            Absolute,
+            ClockWise,
+            CounterCW
+        };
+
+        auto default_direction{ Direction::ClockWise };
+
+        using Angle = std::int16_t;
+        using Error = std::optional<Log::StringExc>;
+
+        using Result = std::tuple<Direction, Angle, Error>;
+    }
+
+    Types::Result ResultBuilder(Types::Direction&& d, Types::Angle&& a, Types::Error&& e) {
+
+        using namespace Types;
+        return std::make_tuple<Direction, Angle, Error>(
+            std::forward<Direction>(d),
+            std::forward<Angle>(a),
+            std::forward<Error>(e)
+        );
+    }
+
+    template<Types::Direction D>
+    Types::Result convertImplentation(Types::Angle const a, bool clamp = false);
+
+    template<>
+    Types::Result convertImplentation<Types::Direction::Absolute>(Types::Angle const a, bool clamp) {
+
+        using namespace Types;
+        if (a == 0)
+        {
+            return ResultBuilder(
+                std::move(Direction{ default_direction }), 
+                Angle{},
+                Error{});
+        }
+        else if (a < -180)
+        {
+            return ResultBuilder(
+                Direction::Absolute,
+                clamp ? -180 : a,
+                Log::StringExc{
+                    std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp)
+                });
+        }
+        else if (a > 180)
+        {
+            return ResultBuilder(
+                Direction::Absolute,
+                clamp ? 180 : a,
+                Log::StringExc{
+                    std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp)
+                });
+        }
+        else if (a < 0)
+        {
+            auto direction = Direction::CounterCW;
+            auto angle = -180 + a;
+            return ResultBuilder(
+                std::move(direction),
+                std::move(angle),
+                Error{}
+            );
+        }
+        else if (a > 0)
+        {
+            auto direction = Direction::ClockWise;
+            auto angle = 180 - a;
+            return ResultBuilder(
+                std::move(direction),
+                std::move(angle),
+                Error{}
+            );
+        }
+        else
+        {
+            throw std::invalid_argument(std::format("unreachable line of code in {} {}:{}", __FUNCTION__, __FILE__, __LINE__));
+        }
+    }
+
+    auto convert(Types::Angle a, Types::Direction d, bool clamp = false) {
+
+        using namespace Types;
+        if (Direction::Absolute == d)
+        {
+            return convertImplentation<Direction::Absolute>(a, clamp);
+        }
+        else if (Direction::ClockWise == d)
+        {
+            return convertImplentation<Direction::Absolute>(a, clamp); // ?
+        }
+        else if (Direction::CounterCW == d)
+        {
+            return convertImplentation<Direction::Absolute>(a, clamp); // ? 
+        }
+        else
+        {
+            return convertImplentation<Direction::Absolute>(a, clamp); // ? 
+        }   //Error{ Log::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__)) };
+       
+    }
+ 
 };
 
-namespace AutoHelper
-{
-    auto default_direction{ Direction::ClockWise };
-}
 
-using Angle = std::int16_t;
-
-using Error = std::optional<Log::StringExc>;
-
-template<Direction D>
-auto convertImplentation(Angle const a, bool clamp = false);
-
-template<>        
-auto convertImplentation<Direction::Absolute>(Angle const a, bool clamp) {
-
-    if (a == 0)
-    {
-        return std::make_tuple<Direction, Angle, Error>(
-            Direction{ AutoHelper::default_direction },
-            0,
-            {});
-    }
-    else if (a < -180)
-    {
-        return std::make_tuple<Direction, Angle, Error>(
-            Direction::Absolute,
-            clamp ? -180 : a, 
-            Log::StringExc{
-                std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp) 
-            });
-    }
-    else if( a > 180)
-    {
-        return std::make_tuple<Direction, Angle, Error>(
-            Direction::Absolute,
-            clamp ? 180 : a,
-            Log::StringExc{
-                std::format("{} converting Absolute angle out range, angle = {}; clamp = {}", __FUNCTION__, a, clamp)
-            });
-    }
-    else if( a < 0)
-    { 
-        auto direction = Direction::CounterCW;
-        auto angle = -180 + a;
-        return std::make_tuple<Direction, Angle, Error>(
-            std::move(direction),
-            std::move(angle),
-            Error{}
-        );
-    }
-    else if (a > 0)
-    {
-        auto direction = Direction::ClockWise;
-        auto angle = 180 - a;
-        return std::make_tuple<Direction, Angle, Error>(
-            std::move(direction),
-            std::move(angle),
-            Error{}
-        );
-    }
-    else
-    {
-        throw std::invalid_argument(std::format("unreachable line of code in {} {}:{}", __FUNCTION__, __FILE__, __LINE__));
-    }
-}
-
-auto convert(Angle a, Direction d) {
-
-    if (Direction::Absolute == d)
-    {
-        
-    }
-    else if (Direction::ClockWise == d)
-    {
-
-    }
-    else if (Direction::CounterCW == d)
-    {
-
-    }
-    else
-    {
-        Log::StringExc(std::format("{} NO IMPLEMENTATION!", __FUNCTION__)); 
-    } 
-}
 
 
 /// <summary>
